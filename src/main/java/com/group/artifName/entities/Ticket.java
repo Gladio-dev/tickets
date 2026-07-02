@@ -30,6 +30,13 @@ public class Ticket {
     @Column(nullable = false)
     private LocalDateTime createdAt;
 
+    @Column(nullable = true)
+    private LocalDateTime assignedAt;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "assignedTo_id", nullable = true)
+    private User assignedTo;
+
     // Relación: Un ticket pertenece a un usuario (el creador)
     // Esto creará una columna llamada "user_id" en la tabla de tickets
     @ManyToOne(fetch = FetchType.LAZY)

@@ -42,20 +42,21 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
 
-        // REGLA DE ORO: Coloca aquí la URL exacta de tu frontend de Next.js
-        configuration.setAllowedOrigins(List.of("http://localhost:3000"));
+        // PATRÓN INTELIGENTE:
+        // Permitimos localhost, la IP loopback, y CUALQUIER IP local que empiece con 192.168.X.X o 10.X.X.X
+        configuration.setAllowedOriginPatterns(List.of(
+                "http://localhost:3000",
+                "http://127.0.0.1:3000",
+                "http://192.168.*.*:3000",
+                "http://10.*.*.*:3000"
+        ));
 
-        // Métodos HTTP permitidos
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-
-        // Cabeceras permitidas
         configuration.setAllowedHeaders(List.of("Authorization", "Content-Type"));
-
-        // ¡CRUCIAL! Permite que el navegador envíe y reciba cookies entre Next.js y Spring
-        configuration.setAllowCredentials(true);
+        configuration.setAllowCredentials(true); // ¡Ahora sí te dejará usar credenciales!
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", configuration);
+        source.registerCorsConfiguration("/api/**", configuration);
         return source;
     }
 }
