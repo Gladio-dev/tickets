@@ -10,6 +10,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import com.group.artifName.services.JwtService;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 
@@ -21,10 +22,10 @@ public class AuthService {
     private final JwtService jwtService;
 
     // Inyección de dependencias por constructor (Buena práctica)
-    public AuthService(UserRepository userRepository, JwtService jwtService) {
+    public AuthService(UserRepository userRepository, JwtService jwtService, BCryptPasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.jwtService = jwtService;
-        this.passwordEncoder = new BCryptPasswordEncoder();
+        this.passwordEncoder = passwordEncoder;
     }
 
     public User register(RegisterDto request) {
@@ -47,7 +48,7 @@ public class AuthService {
                 user.setRole(Role.USER);
             }
         } catch (IllegalArgumentException e) {
-            user.setRole(Role.USER); // Si mandan un rol que no existe, lo hacemos USER
+            user.setRole(Role.USER); // Sí mandan un rol que no existe, lo hacemos USER
         }
 
         // 4. Guardar en la base de datos
@@ -89,4 +90,19 @@ public class AuthService {
         return userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
     }
+
+    @Transactional
+    public boolean resetPasswordToDefault(User user, String newPassword) {
+        // 1. Hashear la nueva contraseña
+        String hashedPassword = passwordEncoder.encode(newPassword);
+
+        // 2. Actualizar el objeto usuario
+        user.setPassword(hashedPassword);
+
+        // 3. Guardar en la base de datos
+        userRepository.save(user);
+
+        return true;
+    }
 }
+

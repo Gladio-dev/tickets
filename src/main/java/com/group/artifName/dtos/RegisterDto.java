@@ -12,7 +12,6 @@ public class RegisterDto {
     @Email(message = "El formato del correo electrónico no es válido")
     private String email;
 
-    @NotBlank(message = "La contraseña es obligatoria")
     @Size(min = 6, message = "La contraseña debe tener al menos 6 caracteres")
     private String password;
 

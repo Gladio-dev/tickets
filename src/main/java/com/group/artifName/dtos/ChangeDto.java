@@ -1,22 +1,19 @@
 package com.group.artifName.dtos;
 
-import com.group.artifName.entities.Role;
-import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 @Data
-public class UserDto {
+public class ChangeDto {
 
     @NotBlank(message = "El correo electrónico es obligatorio")
     @Email(message = "El formato del correo electrónico no es válido")
     private String email;
 
-    @NotBlank(message = "La contraseña es obligatoria")
-    private String password;
+    @NotBlank(message = "La antigua contraseña es obligatoria")
+    private String oldPassword;
 
-    @NotNull(message = "El rol es obligatoria")
-    private Role role;
+    @NotBlank(message = "La nueva contraseña es obligatoria")
+    private String newPassword;
 }

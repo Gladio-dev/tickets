@@ -2,10 +2,15 @@ package com.group.artifName.controllers;
 
 import com.group.artifName.dtos.LoginDto;
 import com.group.artifName.dtos.RegisterDto;
+import com.group.artifName.dtos.ChangeDto;
+import com.group.artifName.dtos.ResetDto;
+import com.group.artifName.entities.Role;
 import com.group.artifName.entities.User;
 import com.group.artifName.services.AuthService;
 import com.group.artifName.services.JwtService;
+import com.group.artifName.services.UserService;
 import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
@@ -13,6 +18,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/auth") // Todas las rutas empezarán con http://localhost:8080/api/auth
@@ -20,22 +26,31 @@ public class AuthController {
 
     private final AuthService authService;
     private final JwtService jwtService; // 1. Agregamos la variable
+    private final UserService userService;
 
 
-    public AuthController(AuthService authService, JwtService jwtService) {
+    public AuthController(AuthService authService, JwtService jwtService, UserService userService) {
         this.authService = authService;
         this.jwtService = jwtService;
+        this.userService = userService;
     }
 
     @PostMapping("/register")
-    public ResponseEntity<?> registerUser(@Valid @RequestBody RegisterDto request) {
+    public ResponseEntity<?> registerUser(@Valid @RequestBody RegisterDto userRegister, HttpServletRequest request) {
         try {
-            User registeredUser = authService.register(request);
+            User loggedUser = authService.getAuthenticatedUser(request); // Autenticación automática por cookie
+            if (userService.isAdmin(loggedUser)){
+                Map<String,String> err = new HashMap<>();
+                err.put("error","not admin");
+                err.put("message","Solo administradores pueden registrar usuarios");
+                return ResponseEntity.badRequest().body(err);
+            }
+            User registeredUser = authService.register(userRegister);
 
             // Creamos una respuesta bonita en formato JSON
             Map<String, String> response = new HashMap<>();
             response.put("message", "Usuario registrado exitosamente");
-            response.put("email", registeredUser.getEmail());
+            response.put("email", userRegister.getEmail());
 
             return ResponseEntity.ok(response);
         } catch (RuntimeException e) {
@@ -47,9 +62,9 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<?> loginUser(@Valid @RequestBody LoginDto request, HttpServletResponse response) {
+    public ResponseEntity<?> loginUser(@Valid @RequestBody LoginDto logitDto, HttpServletResponse response) {
         try {
-            User loggedUser = authService.login(request);
+            User loggedUser = authService.login(logitDto);
 
             // 1. GENERAR EL JWT REAL CON EL EMAIL Y EL ROL
             String jwtToken = jwtService.generateToken(loggedUser.getEmail(), loggedUser.getRole().name());
@@ -62,7 +77,7 @@ public class AuthController {
             authCookie.setSecure(false);    // Cambiar a 'true' en producción (HTTPS)
             authCookie.setPath("/");
 // 7 días El navegador guardará la cookie en el disco duro y no se borrará al apagar la PC
-            authCookie.setMaxAge(60 * 60 * 24 * 365);
+            authCookie.setMaxAge(6 * 24 * 60 * 60);
             // 3. Inyectamos la cookie en la respuesta HTTP
             response.addCookie(authCookie);
 
@@ -91,5 +106,81 @@ public class AuthController {
         res.put("message","sesión cerrada correctamente");
         return ResponseEntity.ok(res);
     }
+
+    @GetMapping("/verify")
+    public ResponseEntity<?> verify(HttpServletRequest request){
+        try {
+            User logedUser = authService.getAuthenticatedUser(request); // Autenticación automática por cookie
+
+            // Creamos una respuesta bonita en formato JSON
+            Map<String, String> response = new HashMap<>();
+            response.put("message", "Sesión iniciada");
+            response.put("email", logedUser.getEmail());
+            response.put("role", logedUser.getRole().name());
+            return ResponseEntity.ok(response);
+
+        } catch (RuntimeException e) {
+            // Si el servicio lanza un error (ej. correo ya existe), lo atrapamos aquí
+            Map<String, String> errorResponse = new HashMap<>();
+            errorResponse.put("error", e.getMessage());
+            return ResponseEntity.badRequest().body(errorResponse);
+        }
+
+    }
+
+    @PostMapping("/change_password")
+    public ResponseEntity<?> changePassword(@Valid @RequestBody ChangeDto changeDto, HttpServletRequest request) {
+        try {
+            // 1. Validar credenciales
+            User loggedUser = authService.getAuthenticatedUser(request);
+            if(!userService.matchPassword(loggedUser,changeDto.getOldPassword())){
+                return ResponseEntity.ok(Map.of(
+                        "message", "Contraseña incorrecta"
+                ));
+            }
+            // 2. Resetear contraseña
+            authService.resetPasswordToDefault(loggedUser, changeDto.getNewPassword());
+
+            // 3. Respuesta exitosa
+            return ResponseEntity.ok(Map.of(
+                    "message", "Contraseña cambiada correctamente"
+            ));
+
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of(
+                    "error", e.getMessage()
+            ));
+        }
+    }
+
+    @PostMapping("/restart_password")
+    public ResponseEntity<?> restartPassword(@Valid @RequestBody ResetDto resetDto, HttpServletRequest request) {
+        try {
+            // 1. Validar credenciales
+            User loggedUser = authService.getAuthenticatedUser(request);
+            Optional<User> userToReset = userService.finduserByMail(resetDto.getEmail());
+
+            if (loggedUser.getRole() != Role.ADMIN) {
+                Map<String, String> err = new HashMap<>();
+                err.put("error", "not admin");
+                err.put("message", "Solo un administrador puede resetear contraseñas");
+                return ResponseEntity.badRequest().body(err);
+            }
+
+            // 2. Resetear contraseña a 12345
+
+            authService.resetPasswordToDefault(loggedUser, "123456");
+            // 3. Respuesta exitosa
+            return ResponseEntity.ok(Map.of(
+                    "message", "Contraseña restablecida"
+            ));
+
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of(
+                    "error", e.getMessage()
+            ));
+        }
+    }
+
 
 }
