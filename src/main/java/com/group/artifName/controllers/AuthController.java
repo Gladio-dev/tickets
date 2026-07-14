@@ -191,9 +191,4 @@ public class AuthController {
         List<User> admins = userService.getAllAdmins();
         return ResponseEntity.ok(admins);
     }
-    @GetMapping("/ping")
-    public String ping() {
-        return "ok";
-    }
-
 }

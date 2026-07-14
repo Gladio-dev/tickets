@@ -29,11 +29,11 @@ public class SecurityConfig {
                 )
                 // 3. Configurar qué rutas están protegidas y cuáles no
                 .authorizeHttpRequests(auth -> auth
-//                        .requestMatchers("/api/auth/**").permitAll() // Permite registro y login sin token
-                                .anyRequest().permitAll()
-//                        .requestMatchers("/api/tickets/**").permitAll()
-//                        .requestMatchers("/api/users/**").permitAll()
-//                        .anyRequest().authenticated()               // Cualquier otra ruta requerirá inicio de sesión
+                        .requestMatchers("/api/auth/**").permitAll() // Permite registro y login sin token
+//                                .anyRequest().permitAll()
+                        .requestMatchers("/api/tickets/**").permitAll()
+                        .requestMatchers("/api/users/**").permitAll()
+                        .anyRequest().authenticated()               // Cualquier otra ruta requerirá inicio de sesión
                 );
 
         return http.build();
@@ -49,9 +49,7 @@ public class SecurityConfig {
         configuration.setAllowedOriginPatterns(List.of(
                 "http://localhost:3000",
                 "http://127.0.0.1:3000",
-                "http://192.168.*.*:3000",
-                "http://10.*.*.*:3000",
-                "201.103.135.240:*"
+                "http://192.168.*.*:3000"
         ));
 
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
