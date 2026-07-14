@@ -52,7 +52,7 @@ public class AuthService {
 
     public User login(LoginDto request) {
         // 1. Buscar si el usuario existe
-        System.out.println("Entró al login");
+        System.out.println("Entró al login test2");
         User user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new RuntimeException("Credenciales incorrectas"));
 
@@ -69,6 +69,7 @@ public class AuthService {
     public User getAuthenticatedUser(HttpServletRequest request) {
         // A. Buscar la cookie AUTH_TOKEN
         String token = null;
+        System.out.println("Entró al session");
         if (request.getCookies() != null) {
             for (Cookie cookie : request.getCookies()) {
                 if ("AUTH_TOKEN".equals(cookie.getName())) {
