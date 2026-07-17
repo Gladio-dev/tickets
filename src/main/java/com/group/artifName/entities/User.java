@@ -33,5 +33,5 @@ public class User {
     private String name;
 
     @Column(nullable = true)
-    private Boolean forceNewPassword;
+    private Boolean needNewPassword;
 }

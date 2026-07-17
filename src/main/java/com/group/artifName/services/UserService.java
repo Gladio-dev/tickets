@@ -39,6 +39,10 @@ public class UserService {
         return userRepository.findByEmail(mail);
     }
 
+    public Optional <User> findUserById(Long id){
+        return userRepository.findById(id);
+    }
+
 
     public List<User> getAllAdmins() {
         return userRepository.findByRole(Role.ADMIN);

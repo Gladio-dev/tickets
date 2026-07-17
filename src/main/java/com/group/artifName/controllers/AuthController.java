@@ -117,7 +117,11 @@ public class AuthController {
             response.put("message", "Sesión iniciada");
             response.put("email", logedUser.getEmail());
             response.put("role", logedUser.getRole().name());
-            response.put("Rpass", logedUser.getForceNewPassword().toString());
+            if (logedUser.getNeedNewPassword() == null|| !logedUser.getNeedNewPassword()) {
+                response.put("Rpass", "false");
+            }else response.put("Rpass", "true");
+
+
             return ResponseEntity.ok(response);
 
         } catch (RuntimeException e) {
@@ -154,7 +158,7 @@ public class AuthController {
         }
     }
 
-    @PostMapping("/reset_password")
+    @PutMapping("/reset_password")
     public ResponseEntity<?> restartPassword(@Valid @RequestBody ResetDto resetDto, HttpServletRequest request) {
         try {
             // 1. Validar credenciales
@@ -167,11 +171,12 @@ public class AuthController {
                 err.put("message", "Solo un administrador puede resetear contraseñas");
                 return ResponseEntity.badRequest().body(err);
             }
-            Optional<User> userToReset = userService.finduserByMail(resetDto.getEmail());
+            Optional<User> userToReset = userService.findUserById(resetDto.getId());
             // 2. Resetear contraseña a 12345
             if (userToReset.isEmpty()) {
                 return ResponseEntity.ok(Map.of(
-                        "message", "usuario no existe"
+                        "message", "usuario no existe",
+                        "error","true"
                 ));
             }
             authService.changePassword(userToReset.get(), "123456");

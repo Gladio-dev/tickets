@@ -2,11 +2,11 @@ package com.group.artifName.dtos;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 @Data
 public class ResetDto {
-    @NotBlank(message = "El correo electrónico es obligatorio")
-    @Email(message = "El formato del correo electrónico no es válido")
-    private String email;
+    @NotNull(message = "Es obligatorio el ID")
+    private Long id;
 }
