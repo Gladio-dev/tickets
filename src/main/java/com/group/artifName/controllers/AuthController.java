@@ -74,8 +74,9 @@ public class AuthController {
 
             // Configuraciones de seguridad para Next.js
             authCookie.setHttpOnly(true);
-            authCookie.setSecure(false);    // Cambiar a 'true' en producción (HTTPS)
+            authCookie.setSecure(true);    // Cambiar a 'true' en producción (HTTPS)
             authCookie.setPath("/");
+
 // 7 días El navegador guardará la cookie en el disco duro y no se borrará al apagar la PC
             authCookie.setMaxAge(6 * 24 * 60 * 60);
             // 3. Inyectamos la cookie en la respuesta HTTP
