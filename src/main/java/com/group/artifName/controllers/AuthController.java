@@ -114,9 +114,9 @@ public class AuthController {
             response.put("message", "Sesión iniciada");
             response.put("email", logedUser.getEmail());
             response.put("role", logedUser.getRole().name());
-            if (logedUser.getNeedNewPassword() == null|| !logedUser.getNeedNewPassword()) {
-                response.put("Rpass", "false");
-            }else response.put("Rpass", "true");
+//            if (logedUser.getActive()|| !logedUser.getNeedNewPassword()) {
+//                response.put("Rpass", "false");
+//            }else response.put("Rpass", "true");
 
 
             return ResponseEntity.ok(response);
@@ -171,6 +171,9 @@ public class AuthController {
                 return ResponseEntity.badRequest().body(err);
             }
             Optional<User> userToReset = userService.findUserById(resetDto.getId());
+
+
+
             // 2. Resetear contraseña a 12345
             if (userToReset.isEmpty()) {
                 return ResponseEntity.ok(Map.of(

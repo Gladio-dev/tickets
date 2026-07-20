@@ -19,7 +19,7 @@ public class User {
     @Column(nullable = false, unique = true)
     private String email;
 
-    @Column(nullable = false)
+    @Column(nullable = true)
     private String password; // Aquí guardaremos la contraseña ENCRIPTADA
 
     @Enumerated(EnumType.STRING) // Guarda el rol en la BD como texto ("USER", "ADMIN")
@@ -33,5 +33,5 @@ public class User {
     private String name;
 
     @Column(nullable = true)
-    private Boolean needNewPassword;
+    private Boolean active;
 }

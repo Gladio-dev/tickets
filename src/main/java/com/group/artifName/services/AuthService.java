@@ -2,6 +2,7 @@ package com.group.artifName.services;
 
 import com.group.artifName.dtos.LoginDto;
 import com.group.artifName.dtos.RegisterDto;
+import com.group.artifName.entities.AccountToken;
 import com.group.artifName.entities.Role;
 import com.group.artifName.entities.User;
 import com.group.artifName.repositories.UserRepository;
@@ -23,14 +24,17 @@ import java.util.Optional;
 public class AuthService {
 
     private final UserRepository userRepository;
+    private final AccountTokenService accountTokenService;
     private final BCryptPasswordEncoder passwordEncoder;
     private final JwtService jwtService;
 
     // Inyección de dependencias por constructor (Buena práctica)
-    public AuthService(UserRepository userRepository, JwtService jwtService, BCryptPasswordEncoder passwordEncoder) {
+    public AuthService(UserRepository userRepository, JwtService jwtService, BCryptPasswordEncoder passwordEncoder,
+                       AccountTokenService accountTokenService) {
         this.userRepository = userRepository;
         this.jwtService = jwtService;
         this.passwordEncoder = passwordEncoder;
+        this.accountTokenService = accountTokenService;
     }
 
     public User register(RegisterDto request) {
@@ -42,17 +46,18 @@ public class AuthService {
         User user = new User();
         user.setEmail(request.getEmail());
         // BCrypt transforma "123456" en algo ilegible como "$2a$10$vX..." por seguridad
-        user.setPassword(passwordEncoder.encode("123456"));
         user.setCompany(request.getCompany());
         user.setName(request.getName());
-        user.setNeedNewPassword(true);
-
+        user.setActive(false);
         // 3. Asignar el rol
         user.setRole(Role.USER);
-
-
         // 4. Guardar en la base de datos
-        return userRepository.save(user);
+        User created = userRepository.save(user);
+        AccountToken accountToken = accountTokenService.activateUser(created);
+
+
+
+        return created;
     }
 
     public User login(LoginDto request) {
