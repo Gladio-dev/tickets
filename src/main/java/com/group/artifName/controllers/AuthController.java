@@ -1,9 +1,6 @@
 package com.group.artifName.controllers;
 
-import com.group.artifName.dtos.LoginDto;
-import com.group.artifName.dtos.RegisterDto;
-import com.group.artifName.dtos.ChangeDto;
-import com.group.artifName.dtos.ResetDto;
+import com.group.artifName.dtos.*;
 import com.group.artifName.entities.Role;
 import com.group.artifName.entities.User;
 import com.group.artifName.services.AuthService;
@@ -163,7 +160,6 @@ public class AuthController {
             // 1. Validar credenciales
             User loggedUser = authService.getAuthenticatedUser(request);
 
-
             if (loggedUser.getRole() != Role.ADMIN) {
                 Map<String, String> err = new HashMap<>();
                 err.put("error", "not admin");
@@ -171,9 +167,6 @@ public class AuthController {
                 return ResponseEntity.badRequest().body(err);
             }
             Optional<User> userToReset = userService.findUserById(resetDto.getId());
-
-
-
             // 2. Resetear contraseña a 12345
             if (userToReset.isEmpty()) {
                 return ResponseEntity.ok(Map.of(
@@ -181,7 +174,7 @@ public class AuthController {
                         "error","true"
                 ));
             }
-            authService.changePassword(userToReset.get(), "123456");
+            authService.resetPassword(userToReset.get());
             // 3. Respuesta exitosa
             return ResponseEntity.ok(Map.of(
                     "message", "Contraseña restablecida"
@@ -199,4 +192,17 @@ public class AuthController {
         List<User> admins = userService.getAllAdmins();
         return ResponseEntity.ok(admins);
     }
+
+    @PutMapping("/activate")
+    public ResponseEntity<?> activateUser(@Valid @RequestBody PasswordDto passwordDto) {
+        try {
+            User user = authService.activateUser(passwordDto.getUuid(), passwordDto.getPassword());
+            return ResponseEntity.ok(user);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of(
+                    "message", e.getMessage()
+            ));
+        }
+    }
+
 }

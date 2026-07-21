@@ -15,10 +15,7 @@ import org.springframework.stereotype.Service;
 import com.group.artifName.services.JwtService;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 public class AuthService {
@@ -53,8 +50,7 @@ public class AuthService {
         user.setRole(Role.USER);
         // 4. Guardar en la base de datos
         User created = userRepository.save(user);
-        AccountToken accountToken = accountTokenService.activateUser(created);
-
+        AccountToken accountToken = accountTokenService.registerUser(created);
 
 
         return created;
@@ -98,18 +94,26 @@ public class AuthService {
     }
 
     @Transactional
-    public boolean changePassword(User user, String newPassword) {
+    public User changePassword(User user, String newPassword) {
         // 1. Hashear la nueva contraseña
         String hashedPassword = passwordEncoder.encode(newPassword);
-
         // 2. Actualizar el objeto usuario
         user.setPassword(hashedPassword);
+        // 3. Guardar en la base de datos
+        return userRepository.save(user);
+    }
+
+    @Transactional
+    public User resetPassword(User user) {
+        // 2. Actualizar el objeto usuario
+        accountTokenService.resetUser(user);
+        user.setPassword(null);
+        user.setActive(false);
 
         // 3. Guardar en la base de datos
-        userRepository.save(user);
-
-        return true;
+        return userRepository.save(user);
     }
+
 
     public HttpServletResponse logOut(HttpServletResponse response) {
 
@@ -118,6 +122,22 @@ public class AuthService {
         cookie.setPath("/");
         response.addCookie(cookie);
         return response;
+    }
+
+
+    @Transactional
+    public User activateUser(UUID uuid, String password) {
+
+        User user = accountTokenService.consumeActivationToken(uuid);
+
+        if (user.getActive()) {
+            throw new RuntimeException("La cuenta ya se encuentra activada.");
+        }
+
+        user.setPassword(passwordEncoder.encode(password));
+        user.setActive(true);
+
+        return userRepository.save(user);
     }
 
 }
