@@ -2,6 +2,7 @@ package com.group.artifName.services;
 
 
 //import com.microsoft.graph.models.*;
+
 import com.group.artifName.entities.Ticket;
 import com.group.artifName.entities.User;
 import com.microsoft.graph.models.BodyType;
@@ -44,88 +45,95 @@ public class EmailService {
     private String portalUrl;
 
 
-    public void sendActivationEmail(User user,String token) {
+    public void sendActivationEmail(User user, String token) {
         // Construir el HTML
+        try {
+            user = new User();
+            user.setEmail("alexis.castillo@rseguridad.com");
+            Context context = new Context();
+            context.setVariable("activationLink", portalUrl + "/activate/" + token);
 
-        user = new User();
-        user.setEmail("alexis.castillo@rseguridad.com");
-        Context context = new Context();
-        context.setVariable("activationLink", portalUrl+"/activate/"+token);
+            String html = templateEngine.process(
+                    "activation-email",
+                    context
+            );
 
-        String html = templateEngine.process(
-                "activation-email",
-                context
-        );
+            // Crear el cuerpo del correo
+            ItemBody body = new ItemBody();
+            body.setContentType(BodyType.Html);
+            body.setContent(html);
 
-        // Crear el cuerpo del correo
-        ItemBody body = new ItemBody();
-        body.setContentType(BodyType.Html);
-        body.setContent(html);
+            // Destinatario
+            EmailAddress emailAddress = new EmailAddress();
+            emailAddress.setAddress(user.getEmail());
 
-        // Destinatario
-        EmailAddress emailAddress = new EmailAddress();
-        emailAddress.setAddress(user.getEmail());
+            Recipient recipient = new Recipient();
+            recipient.setEmailAddress(emailAddress);
 
-        Recipient recipient = new Recipient();
-        recipient.setEmailAddress(emailAddress);
+            // Mensaje
+            Message message = new Message();
+            message.setSubject("Activa tu cuenta");
+            message.setBody(body);
+            message.setToRecipients(List.of(recipient));
 
-        // Mensaje
-        Message message = new Message();
-        message.setSubject("Activa tu cuenta");
-        message.setBody(body);
-        message.setToRecipients(List.of(recipient));
+            // Petición
+            SendMailPostRequestBody request = new SendMailPostRequestBody();
+            request.setMessage(message);
+            request.setSaveToSentItems(true);
 
-        // Petición
-        SendMailPostRequestBody request = new SendMailPostRequestBody();
-        request.setMessage(message);
-        request.setSaveToSentItems(true);
-
-        // Envío
-        graphServiceClient
-                .users()
-                .byUserId(sender) // <-- correo remitente
-                .sendMail()
-                .post(request);
+            // Envío
+            graphServiceClient
+                    .users()
+                    .byUserId(sender) // <-- correo remitente
+                    .sendMail()
+                    .post(request);
+        } catch(Exception e) {
+            System.out.println("Error al mandar mail de activación"+e.getMessage());
+        }
     }
 
     public void sendNewTicketNotification(Ticket ticket) {
 
-        Context context = new Context();
-        context.setVariable("date",
-                ticket.getCreatedAt().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")));
-        context.setVariable("userName", ticket.getUser().getName());
-        context.setVariable("company", ticket.getUser().getCompany());
-        context.setVariable("portalUrl", portalUrl);
+        try{
+            Context context = new Context();
+            context.setVariable("date",
+                    ticket.getCreatedAt().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")));
+            context.setVariable("userName", ticket.getUser().getName());
+            context.setVariable("company", ticket.getUser().getCompany());
+            context.setVariable("portalUrl", portalUrl);
 
-        String html = templateEngine.process(
-                "new-ticket-notification",
-                context
-        );
+            String html = templateEngine.process(
+                    "new-ticket-notification",
+                    context
+            );
 
-        ItemBody body = new ItemBody();
-        body.setContentType(BodyType.Html);
-        body.setContent(html);
+            ItemBody body = new ItemBody();
+            body.setContentType(BodyType.Html);
+            body.setContent(html);
 
-        EmailAddress emailAddress = new EmailAddress();
-        emailAddress.setAddress(ticketRecipient);
+            EmailAddress emailAddress = new EmailAddress();
+            emailAddress.setAddress(ticketRecipient);
 
-        Recipient recipient = new Recipient();
-        recipient.setEmailAddress(emailAddress);
+            Recipient recipient = new Recipient();
+            recipient.setEmailAddress(emailAddress);
 
-        Message message = new Message();
-        message.setSubject("Nuevo ticket registrado");
-        message.setBody(body);
-        message.setToRecipients(List.of(recipient));
+            Message message = new Message();
+            message.setSubject("Nuevo ticket registrado");
+            message.setBody(body);
+            message.setToRecipients(List.of(recipient));
 
-        SendMailPostRequestBody request = new SendMailPostRequestBody();
-        request.setMessage(message);
-        request.setSaveToSentItems(true);
+            SendMailPostRequestBody request = new SendMailPostRequestBody();
+            request.setMessage(message);
+            request.setSaveToSentItems(true);
 
-        graphServiceClient
-                .users()
-                .byUserId(sender)
-                .sendMail()
-                .post(request);
+            graphServiceClient
+                    .users()
+                    .byUserId(sender)
+                    .sendMail()
+                    .post(request);
+        }catch(Exception e){
+            System.out.println("Error al mandar mail de notifiacion"+e.getMessage());
+        }
     }
 
 
