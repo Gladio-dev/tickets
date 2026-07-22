@@ -93,7 +93,7 @@ public class EmailService {
         Context context = new Context();
         context.setVariable("date",
                 ticket.getCreatedAt().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")));
-        context.setVariable("userName", ticket.getUser());
+        context.setVariable("userName", ticket.getUser().getName());
         context.setVariable("company", ticket.getUser().getCompany());
         context.setVariable("portalUrl", portalUrl);
 
