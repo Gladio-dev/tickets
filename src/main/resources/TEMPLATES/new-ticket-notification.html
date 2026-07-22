@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Nuevo ticket registrado</title>
+</head>
+
+<body style="margin:0;background:#f5f5f5;font-family:Arial,sans-serif;">
+
+<table width="100%" cellpadding="40" cellspacing="0" style="background:#f5f5f5;">
+    <tr>
+        <td align="center">
+
+            <table width="600"
+                   cellpadding="0"
+                   cellspacing="0"
+                   style="background:#ffffff;border-radius:10px;padding:40px;">
+                <tr>
+                    <td>
+                        <h2 style="margin-top:0;color:#1f2937;">
+                            Nuevo ticket registrado
+                        </h2>
+                        <p style="color:#4b5563;">
+                            Se ha registrado un nuevo ticket en el portal.
+                        </p>
+                        <table width="100%" cellpadding="10" cellspacing="0"
+                               style="border-collapse:collapse;margin-top:25px;margin-bottom:25px;">
+                            <tr style="background:#f9fafb;">
+                                <td><strong>Fecha</strong></td>
+                                <td th:text="${date}"></td>
+                            </tr>
+                            <tr>
+                                <td><strong>Usuario</strong></td>
+                                <td th:text="${userName}"></td>
+                            </tr>
+                            <tr style="background:#f9fafb;">
+                                <td><strong>Empresa</strong></td>
+                                <td th:text="${company}"></td>
+                            </tr>
+                        </table>
+                        <p style="text-align:center;margin:40px 0;">
+                            <a th:href="${portalUrl}"
+                               style="
+                                    background:#2563eb;
+                                    color:white;
+                                    text-decoration:none;
+                                    padding:15px 30px;
+                                    border-radius:8px;
+                                    font-weight:bold;
+                                    display:inline-block;">
+                                Ir al portal
+                            </a>
+                        </p>
+                        <p style="color:#6b7280;">
+                            Si el botón no funciona, utiliza el siguiente enlace:
+                        </p>
+                        <p>
+                            <span th:text="${portalUrl}"></span>
+                        </p>
+                    </td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+</table>
+</body>
+</html>

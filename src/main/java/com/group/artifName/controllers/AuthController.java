@@ -46,8 +46,7 @@ public class AuthController {
             }
             User registeredUser = authService.register(userRegister);
             AccountToken accountToken = accountTokenService.registerUser(registeredUser);
-            String link = createLink(accountToken);
-            emailService.sendActivationEmail(registeredUser,link);
+            emailService.sendActivationEmail(registeredUser, accountToken.getToken().toString());
 
             // Creamos una respuesta bonita en formato JSON
             Map<String, String> response = new HashMap<>();
@@ -64,12 +63,6 @@ public class AuthController {
         }
     }
 
-    private String createLink(AccountToken accountToken) {
-
-
-
-        return "";
-    }
 
     @PostMapping("/login")
     public ResponseEntity<?> loginUser(@Valid @RequestBody LoginDto loginDto, HttpServletResponse response) {
@@ -155,6 +148,7 @@ public class AuthController {
             // 2. Resetear contraseña
             authService.changePassword(loggedUser, changeDto.getNewPassword());
             response = authService.logOut(response);
+
             // 3. Respuesta exitosa
             return ResponseEntity.ok(Map.of(
                     "message", "Contraseña cambiada correctamente, inicia sesion con tu nueva contraseña"
@@ -172,7 +166,12 @@ public class AuthController {
         try {
             // 1. Validar credenciales
             User loggedUser = authService.getAuthenticatedUser(request);
-
+            if(loggedUser.getId()== resetDto.getId()){
+                    return ResponseEntity.ok(Map.of(
+                            "message", "No puedes resetear tu propia contraseña",
+                            "error","true"
+                    ));
+            }
             if (loggedUser.getRole() != Role.ADMIN) {
                 Map<String, String> err = new HashMap<>();
                 err.put("error", "not admin");
@@ -187,7 +186,9 @@ public class AuthController {
                         "error","true"
                 ));
             }
-            authService.resetPassword(userToReset.get());
+            User user =authService.resetPassword(userToReset.get());
+            AccountToken accountToken= accountTokenService.resetUser(user);
+            emailService.sendActivationEmail(user, accountToken.getToken().toString());
             // 3. Respuesta exitosa
             return ResponseEntity.ok(Map.of(
                     "message", "Contraseña restablecida"
@@ -218,16 +219,16 @@ public class AuthController {
         }
     }
 
-    @PutMapping("/reset")
-    public ResponseEntity<?> resetUser(@Valid @RequestBody PasswordDto passwordDto) {
-        try {
-            User user = authService.activateUser(passwordDto.getUuid(), passwordDto.getPassword());
-            return ResponseEntity.ok(user);
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(Map.of(
-                    "message", e.getMessage()
-            ));
-        }
-    }
+//    @PutMapping("/reset")
+//    public ResponseEntity<?> resetUser(@Valid @RequestBody PasswordDto passwordDto) {
+//        try {
+//            User user = authService.activateUser(passwordDto.getUuid(), passwordDto.getPassword());
+//            return ResponseEntity.ok(user);
+//        } catch (Exception e) {
+//            return ResponseEntity.badRequest().body(Map.of(
+//                    "message", e.getMessage()
+//            ));
+//        }
+//    }
 
 }

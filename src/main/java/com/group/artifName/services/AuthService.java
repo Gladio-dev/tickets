@@ -21,7 +21,7 @@ import java.util.*;
 public class AuthService {
 
     private final UserRepository userRepository;
-
+    private final AccountTokenService accountTokenService;
     private final BCryptPasswordEncoder passwordEncoder;
     private final JwtService jwtService;
 
@@ -31,7 +31,7 @@ public class AuthService {
         this.userRepository = userRepository;
         this.jwtService = jwtService;
         this.passwordEncoder = passwordEncoder;
-
+        this.accountTokenService =accountTokenService;
     }
 
     public User register(RegisterDto request) {
@@ -106,7 +106,6 @@ public class AuthService {
     @Transactional
     public User resetPassword(User user) {
         // 2. Actualizar el objeto usuario
-        accountTokenService.resetUser(user);
         user.setPassword(null);
         user.setActive(false);
 

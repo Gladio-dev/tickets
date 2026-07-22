@@ -2,6 +2,7 @@ package com.group.artifName.services;
 
 
 //import com.microsoft.graph.models.*;
+import com.group.artifName.entities.Ticket;
 import com.group.artifName.entities.User;
 import com.microsoft.graph.models.BodyType;
 import com.microsoft.graph.models.EmailAddress;
@@ -18,6 +19,10 @@ import org.springframework.beans.factory.annotation.Value;
 import com.azure.core.credential.AccessToken;
 import com.azure.core.credential.TokenRequestContext;
 
+
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+
 import org.thymeleaf.context.Context;
 import org.thymeleaf.spring6.SpringTemplateEngine;
 
@@ -32,16 +37,20 @@ public class EmailService {
     private final SpringTemplateEngine templateEngine;
     @Value("${spring.mail.username}")
     private String sender;
+    @Value("${mail.ticket-recipient}")
+    private String ticketRecipient;
+
+    @Value("${mail.portal-url}")
+    private String portalUrl;
 
 
-
-    public void sendActivationEmail(User user, String activationLink) {
+    public void sendActivationEmail(User user,String token) {
         // Construir el HTML
 
         user = new User();
         user.setEmail("alexis.castillo@rseguridad.com");
         Context context = new Context();
-        context.setVariable("activationLink", activationLink);
+        context.setVariable("activationLink", portalUrl+"/activate/"+token);
 
         String html = templateEngine.process(
                 "activation-email",
@@ -78,6 +87,47 @@ public class EmailService {
                 .sendMail()
                 .post(request);
     }
+
+    public void sendNewTicketNotification(Ticket ticket) {
+
+        Context context = new Context();
+        context.setVariable("date",
+                ticket.getCreatedAt().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")));
+        context.setVariable("userName", ticket.getUser());
+        context.setVariable("company", ticket.getUser().getCompany());
+        context.setVariable("portalUrl", portalUrl);
+
+        String html = templateEngine.process(
+                "new-ticket-notification",
+                context
+        );
+
+        ItemBody body = new ItemBody();
+        body.setContentType(BodyType.Html);
+        body.setContent(html);
+
+        EmailAddress emailAddress = new EmailAddress();
+        emailAddress.setAddress(ticketRecipient);
+
+        Recipient recipient = new Recipient();
+        recipient.setEmailAddress(emailAddress);
+
+        Message message = new Message();
+        message.setSubject("Nuevo ticket registrado");
+        message.setBody(body);
+        message.setToRecipients(List.of(recipient));
+
+        SendMailPostRequestBody request = new SendMailPostRequestBody();
+        request.setMessage(message);
+        request.setSaveToSentItems(true);
+
+        graphServiceClient
+                .users()
+                .byUserId(sender)
+                .sendMail()
+                .post(request);
+    }
+
 
     public void testAuthentication() {
         System.out.println("GraphServiceClient creado correctamente: " + graphServiceClient);

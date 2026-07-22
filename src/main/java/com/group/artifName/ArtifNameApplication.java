@@ -23,7 +23,7 @@ public class ArtifNameApplication {
 		return args -> {
 
 
-			emailService.sendActivationEmail(null,"www.google.com");
+//			emailService.sendActivationEmail(null,"www.google.com");
 //			emailService.sendTestEmail("alexis.castillo@rseguridad.com");
 //			emailService.testAuthentication();
 //			emailService.testToken();

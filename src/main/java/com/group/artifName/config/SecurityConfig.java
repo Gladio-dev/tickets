@@ -50,7 +50,8 @@ public class SecurityConfig {
                 "http://localhost:3000",
                 "http://127.0.0.1:3000",
                 "http://192.168.*.*:3000",
-                "https://front-tickets-pied.vercel.app"
+                "https://front-tickets-pied.vercel.app",
+                "https://www.gservices.mx"
         ));
 
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));

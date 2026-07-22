@@ -1,14 +1,12 @@
 package com.group.artifName.controllers;
 
 import com.group.artifName.dtos.*;
+import com.group.artifName.entities.AccountToken;
 import com.group.artifName.entities.Ticket;
 import com.group.artifName.entities.TicketMessage;
 import com.group.artifName.entities.User;
 import com.group.artifName.repositories.UserRepository;
-import com.group.artifName.services.AuthService;
-import com.group.artifName.services.JwtService;
-import com.group.artifName.services.TicketMessageService;
-import com.group.artifName.services.TicketService;
+import com.group.artifName.services.*;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
@@ -28,17 +26,20 @@ public class TicketController {
     private final JwtService jwtService; // 1. Inyectamos JwtService
     private final AuthService authService;
     private final TicketMessageService ticketMessageService ;
+    private final EmailService emailService ;
 
     public TicketController(TicketService ticketService,
                             UserRepository userRepository,
                             JwtService jwtService,
                             AuthService authService,
-                            TicketMessageService ticketMessageService) {
+                            TicketMessageService ticketMessageService,
+                            EmailService emailService) {
         this.ticketService = ticketService;
         this.userRepository = userRepository;
         this.jwtService = jwtService;
         this.authService = authService;
         this.ticketMessageService = ticketMessageService;
+        this.emailService = emailService;
     }
 
 
@@ -49,6 +50,8 @@ public class TicketController {
         try {
             User user = authService.getAuthenticatedUser(httpRequest); // Autenticación automática por cookie
             Ticket newTicket = ticketService.createTicket(request, user);
+            emailService.sendNewTicketNotification(newTicket);
+
             return ResponseEntity.ok(newTicket);
         } catch (RuntimeException e) {
             return ResponseEntity.status(401).body(e.getMessage());
