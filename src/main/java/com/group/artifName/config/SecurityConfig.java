@@ -47,9 +47,9 @@ public class SecurityConfig {
         // PATRÓN INTELIGENTE:
         // Permitimos localhost, la IP loopback, y CUALQUIER IP local que empiece con 192.168.X.X o 10.X.X.X
         configuration.setAllowedOriginPatterns(List.of(
-                "http://localhost:3000",
-                "http://127.0.0.1:3000",
-                "http://192.168.*.*:3000",
+//                "http://localhost:3000",
+//                "http://127.0.0.1:3000",
+//                "http://192.168.*.*:3000",
                 "https://front-tickets-pied.vercel.app",
                 "https://www.gservices.mx"
         ));

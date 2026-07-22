@@ -1,5 +1,6 @@
 package com.group.artifName.services;
 
+import com.group.artifName.config.TimeProvider;
 import com.group.artifName.dtos.TicketDto;
 import com.group.artifName.entities.Role;
 import com.group.artifName.entities.Ticket;
@@ -7,6 +8,7 @@ import com.group.artifName.entities.TicketStatus;
 import com.group.artifName.entities.User;
 import com.group.artifName.repositories.TicketRepository;
 import com.group.artifName.repositories.UserRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -15,7 +17,8 @@ import java.util.Optional;
 
 @Service
 public class TicketService {
-
+    @Autowired
+    private TimeProvider timeProvider;
     private final TicketRepository ticketRepository;
     private final UserRepository userRepository ;
 
@@ -31,7 +34,7 @@ public class TicketService {
         ticket.setTitle(request.getTitle());
         ticket.setDescription(request.getDescription());
         ticket.setStatus(TicketStatus.ABIERTO); // Todo ticket nuevo empieza ABIERTO
-        ticket.setCreatedAt(LocalDateTime.now());
+        ticket.setCreatedAt(timeProvider.now());
         ticket.setUser(user); // Vinculamos el ticket con el usuario
         ticket.setArea(request.getArea());
         ticket.setType(request.getType());
@@ -99,7 +102,7 @@ public class TicketService {
                 throw new IllegalArgumentException();
             }
             ticket.setAssignedTo(assignedTo.get());
-            ticket.setAssignedAt(LocalDateTime.now());
+            ticket.setAssignedAt(timeProvider.now());
         } catch (IllegalArgumentException e) {
             throw new RuntimeException("No se pudo asinar el ticket al usuario seleccionado");
         }
@@ -125,7 +128,7 @@ public class TicketService {
                 throw new IllegalArgumentException();
             }
             ticket.setStatus(TicketStatus.EN_PROCESO);
-            ticket.setInProgressAt(LocalDateTime.now());
+            ticket.setInProgressAt(timeProvider.now());
 
         } catch (IllegalArgumentException e) {
             throw new RuntimeException("No se pudo asinar el ticket al usuario seleccionado");
@@ -148,7 +151,7 @@ public class TicketService {
             }
 
             ticket.setStatus(TicketStatus.RESUELTO);
-            ticket.setSolvedAt(LocalDateTime.now());
+            ticket.setSolvedAt(timeProvider.now());
             ticket.setSolution(message);
 
         } catch (IllegalArgumentException e) {
