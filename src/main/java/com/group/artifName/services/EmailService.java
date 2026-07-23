@@ -48,8 +48,6 @@ public class EmailService {
     public void sendActivationEmail(User user, String token) {
         // Construir el HTML
         try {
-            user = new User();
-            user.setEmail("alexis.castillo@rseguridad.com");
             Context context = new Context();
             context.setVariable("activationLink", portalUrl + "/activate/" + token);
 
