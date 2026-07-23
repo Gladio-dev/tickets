@@ -13,6 +13,9 @@ import org.springframework.boot.webmvc.autoconfigure.WebMvcProperties;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseCookie;
+
 import java.util.*;
 
 @RestController
@@ -71,18 +74,30 @@ public class AuthController {
             // 1. GENERAR EL JWT REAL CON EL EMAIL Y EL ROL
             String jwtToken = jwtService.generateToken(loggedUser.getEmail(), loggedUser.getRole().name());
 
-            // 2. Guardamos el TOKEN dentro de la cookie AUTH_TOKEN
-            Cookie authCookie = new Cookie("AUTH_TOKEN", jwtToken);
 
-            // Configuraciones de seguridad para Next.js
-            authCookie.setHttpOnly(true);
-            authCookie.setSecure(true);    // Cambiar a 'true' en producción (HTTPS)
-            authCookie.setPath("/");
+            ResponseCookie cookie = ResponseCookie.from("AUTH_TOKEN", jwtToken)
+                    .httpOnly(true)
+                    .secure(true)
+                    .path("/")
+                    .maxAge(6 * 24 * 60 * 60)
+                    .sameSite("None")
+                    .build();
 
-            // 7 días El navegador guardará la cookie en el disco duro y no se borrará al apagar la PC
-            authCookie.setMaxAge(6 * 24 * 60 * 60);
-            // 3. Inyectamos la cookie en la respuesta HTTP
-            response.addCookie(authCookie);
+            response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
+
+
+//            // 2. Guardamos el TOKEN dentro de la cookie AUTH_TOKEN
+//            Cookie authCookie = new Cookie("AUTH_TOKEN", jwtToken);
+//
+//            // Configuraciones de seguridad para Next.js
+//            authCookie.setHttpOnly(true);
+//            authCookie.setSecure(true);
+//            authCookie.setPath("/");
+//
+//            // 7 días El navegador guardará la cookie en el disco duro y no se borrará al apagar la PC
+//            authCookie.setMaxAge(6 * 24 * 60 * 60);
+//            // 3. Inyectamos la cookie en la respuesta HTTP
+//            response.addCookie(authCookie);
 
             // 4. Respondemos al frontend con información básica del usuario
             Map<String, Object> body = new HashMap<>();
